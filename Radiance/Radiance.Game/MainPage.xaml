@@ -1,0 +1,19 @@
+﻿<UserControl x:Class="Radiance.Game.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="300" d:DesignWidth="400">
+
+    <Canvas x:Name="Root" Background="Snow" Width="800" Height="580" MouseLeftButtonDown="Game_MouseLeftButtonDown" MouseMove="Game_MouseMove" Cursor="None" >
+        <TextBlock x:Name="DebugTip" Foreground="Azure"></TextBlock>
+        <Canvas  x:Name="Carrier" Canvas.ZIndex="-1"/>
+        <Image x:Name="GameCursor" Width="24" Height="24" IsHitTestVisible="False" Stretch="Fill" Canvas.ZIndex="100000"/>
+        <Canvas Canvas.Left="10" Canvas.Top="540">
+            <StackPanel Orientation="Horizontal">
+                
+            </StackPanel>
+        </Canvas>
+    </Canvas>
+</UserControl>
