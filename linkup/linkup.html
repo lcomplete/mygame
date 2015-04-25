@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>连连看</title>
+        <style type="text/css">
+        body{background:#333;}
+        h1{color:#ccc;}
+        #icon_table{margin:auto;background:rgb(1,5,2);}
+        #icon_table td{width:40px;height:40px;border:2px solid rgb(1,5,2);}
+        #icon_table td.path{background:yellow;border-color:yellow;}
+        #icon_table td.selected{border-color:yellow;}
+        #icon_table td img{width:100%;height:100%;}
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1>魍魉技能连连看</h1>
+            <table id="icon_table" cellspacing="0" cellpadding="0"></table>
+        </div>
+        <script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+        <script type="text/javascript">
+            var rowcount=6; //图标行数(实际的行和列多2，留作空白的路径)
+            var colcount=12; //图标列数
+            var iconCount=18; //不同的图标的个数
+            var iconRepeat=4; //单个图标出现次数
+            var shuffleIcons=[]; //打乱的图标
+            var icons=[]; //图标二维数组,值为0表示无图标
+            var selectedCell=null;
+            
+            //随机打乱图标数组
+            function shuffIcons(){
+                for(var i=0;i<iconCount*iconRepeat;i++){
+                    shuffleIcons.push((i%iconCount)+1);
+                }
+                for(var i=0;i<shuffleIcons.length;i++){
+                    var rndNumber=Math.floor(Math.random()*shuffleIcons.length);
+                    var temp=shuffleIcons[i];
+                    shuffleIcons[i]=shuffleIcons[rndNumber];
+                    shuffleIcons[rndNumber]=temp;
+                }
+            }
+
+            //初始化图标二维数据 并显示图标
+            function createIcons(){
+                var icon_table=$("#icon_table");
+                for(var i=0;i<rowcount+2;i++){
+                    icons[i]=[];
+                    var row=$("<tr>");
+                    for(var j=0;j<colcount+2;j++){
+                        var col=$("<td>");
+                        iconNumber=0;
+                        if(i!=0 && i<rowcount+1 && j!=0 && j<colcount+1){
+                            iconNumber=shuffleIcons[(i-1)*colcount+j-1];
+                            var img=$("<img>").attr("src","avatar/"+iconNumber+".gif");
+                            col.append(img);
+                        }
+                        col.data('i',i).data('j',j).data("n",iconNumber);
+                        icons[i][j]=iconNumber; //初始化图标二维数组
+                        row.append(col);
+                    }
+                    icon_table.append(row);
+                }
+            }
+
+            //附加图标点击事件
+            function attachEvent(){
+                $("#icon_table td").click(function(){
+                    var cell=$(this);
+                    iconNumber=cell.data('n');
+                    if(iconNumber==0)
+                        return; //点击空白处 不做处理
+
+                    if(cell.is(".selected")){
+                        cell.removeClass("selected");
+                        selectedCell=null;
+                    }
+                    else if(selectedCell==null){
+                        cell.addClass("selected");
+                        selectedCell=cell;
+                    }
+                    else{
+                        var path= findPath(selectedCell,cell);
+                        if(path==null){
+                            selectedCell.removeClass("selected");
+                            cell.addClass("selected");
+                            selectedCell=cell;
+                        }
+                        else{
+                            console.log(path);
+                            cell.addClass("selected");
+                            drawPath(selectedCell,cell,path);
+                            
+                            clearCell(cell);
+                            clearCell(selectedCell);
+                            selectedCell=null;
+                        }
+                    }
+                });
+            }
+
+            //绘制连接路径
+            function drawPath(selectedCell,cell,path){
+                var beginPoint={"i":selectedCell.data("i"),"j":selectedCell.data("j")};
+                var endPoint={"i":cell.data("i"),"j":cell.data("j")};
+                var fullPath=[];
+                $.each(path,function(i,point){
+                    fullPath.push(point);
+                });
+                fullPath.push(endPoint);
+                drawCell(beginPoint.i,beginPoint.j);
+                $.each(fullPath,function(i,point){
+                    var rowIncrease=point.i-beginPoint.i;
+                    if(rowIncrease!=0)
+                        rowIncrease=rowIncrease>0?1:-1;
+                    var colIncrease=point.j-beginPoint.j;
+                    if(colIncrease!=0)
+                        colIncrease=colIncrease>0?1:-1;
+                    var i=beginPoint.i;
+                    var j=beginPoint.j;
+                    do{
+                        i+=rowIncrease;
+                        do{
+                            j+=colIncrease;
+                            drawCell(i,j);
+                        }while(j!=point.j);
+                    }while(i!=point.i);
+                    beginPoint=point;
+                });
+            }
+
+            //绘制路径中的单元格
+            function drawCell(row,col){
+                var cell= $("#icon_table tr").eq(row).find("td").eq(col);
+                cell.addClass("path");
+                cell.animate({"opacity":"0.1"},function(){
+                    cell.removeClass("path").css("opacity",1);//恢复样式 以便其他路径使用
+                });   
+            }
+
+            //清空单元格
+            function clearCell(cell){
+                cell.removeClass("selected").data("n",0);
+                cell.find("img").css("visibility","hidden");
+                icons[cell.data("i")][cell.data("j")]=0;
+            }
+
+            //查找两个单元格中的路径
+            function findPath(cellA,cellB){
+                if(cellA.data('n')!=cellB.data('n'))
+                    return null;
+                var startPoint={i:cellA.data("i"),j:cellA.data("j")};
+                var endPoint={i:cellB.data("i"),j:cellB.data("j")};
+                return findCornerPath(startPoint,endPoint,[getPointOrder(startPoint)],[]);
+            }
+
+            //获取路径中的拐点 不包含始末点
+            function findCornerPath(startPoint,endPoint,visitedOrders,corners){
+                var newPoints=[];
+                var checkResult={isEnd:false,isNotEmpty:false};
+                var point=startPoint;
+                for(var col=point.j+1;col<colcount+2 && !checkResult.isEnd ;col++){
+                    var newPoint={"i":point.i,"j":col};
+                    checkResult = checkNewPoint(newPoints,visitedOrders,newPoint,endPoint);
+                    if(checkResult.isNotEmpty) //碰到有图标的顶点 则停止遍历
+                        break;
+                }
+                for(var col=point.j-1;col>=0 && !checkResult.isEnd ;col--){
+                    var newPoint={"i":point.i,"j":col};
+                    checkResult= checkNewPoint(newPoints,visitedOrders,newPoint,endPoint);
+                    if(checkResult.isNotEmpty)
+                        break;
+                }
+                for(var row=point.i+1;row<rowcount+2 && !checkResult.isEnd ;row++){
+                    var newPoint={"i":row,"j":point.j};
+                    checkResult= checkNewPoint(newPoints,visitedOrders,newPoint,endPoint);
+                    if(checkResult.isNotEmpty)
+                        break;
+                }
+                for(var row=point.i-1;row>=0 && !checkResult.isEnd ;row--){
+                    var newPoint={"i":row,"j":point.j};
+                    checkResult= checkNewPoint(newPoints,visitedOrders,newPoint,endPoint);
+                    if(checkResult.isNotEmpty)
+                        break;
+                }
+                if(checkResult.isEnd)
+                    return corners;//成功访问到结尾顶点 则返回路径
+
+                //检查到新的顶点 并且拐点不超过两个 则进一步递归
+                if(newPoints.length>0 && corners.length<2){
+                    for(var i=0;i<newPoints.length;i++){
+                        var point=newPoints[i];
+                        var newCorners=corners.slice(0);
+                        newCorners.push(point);//复制拐点 并加入当前顶点
+                        result= findCornerPath(point,endPoint,visitedOrders,newCorners);
+                        if(result!=null)
+                            return result;
+                    }
+                }
+
+                return null;
+            }
+
+            //获得顶点（图标）的顺序
+            function getPointOrder(point){
+                return point.i*(colcount+2)+point.j;
+            }
+
+            //检查新遍历到的顶点
+            function checkNewPoint(newPoints,visitedOrders,newPoint,endPoint){
+                pointOrder=getPointOrder(newPoint);
+                var result={isNotEmpty:false,isEnd:false};
+                if(visitedOrders.indexOf(pointOrder)==-1){//第一次访问到该顶点才处理
+                    result.isEnd = newPoint.i==endPoint.i && newPoint.j==endPoint.j;
+                    result.isNotEmpty= icons[newPoint.i][newPoint.j]>0;
+                    if(result.isEnd || !result.isNotEmpty)
+                        newPoints.push(newPoint);
+                }
+                else{
+                    result.isNotEmpty=true;//访问过该顶点 则停止当前方向的遍历 
+                }
+                return result;
+            }
+
+            function initGame(){
+                shuffIcons();
+                createIcons();
+                attachEvent();
+            }
+
+            initGame();
+        </script>
+    </body>
+</html>
