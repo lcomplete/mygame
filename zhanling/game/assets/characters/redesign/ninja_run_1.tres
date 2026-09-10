@@ -1,0 +1,9 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/redesign/ninja.png" id="1"]
+
+[resource]
+atlas = ExtResource("1")
+region = Rect2(975, 79, 251, 214)
+margin = Rect2(80, 126.6552, 261, 170)
+filter_clip = true

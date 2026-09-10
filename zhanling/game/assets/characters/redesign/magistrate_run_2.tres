@@ -1,0 +1,9 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/redesign/magistrate.png" id="1"]
+
+[resource]
+atlas = ExtResource("1")
+region = Rect2(21, 343, 275, 272)
+margin = Rect2(75, 68.6552, 237, 112)
+filter_clip = true

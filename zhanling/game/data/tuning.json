@@ -1,0 +1,17 @@
+{
+  "player": {
+    "speed": 330, "acceleration": 2500, "friction": 3000,
+    "gravity": 1700, "jump_speed": 665, "max_fall": 1050,
+    "coyote_time": 0.12, "jump_buffer": 0.14,
+    "dash_speed": 940, "dash_duration": 0.16, "dash_cooldown": 0.6,
+    "attack_duration": 0.23, "attack_cooldown": 0.28, "attack_reach": 126,
+    "hurt_invulnerability": 1.1, "max_health": 5
+  },
+  "enemies": {
+    "soldier": {"health": 2, "speed": 95, "notice_range": 370, "attack_range": 90, "telegraph": 0.48, "recovery": 0.8, "damage": 1},
+    "archer": {"health": 2, "speed": 50, "notice_range": 670, "attack_range": 520, "telegraph": 0.78, "recovery": 1.45, "damage": 1},
+    "magistrate": {"health": 24, "speed": 135, "notice_range": 1500, "attack_range": 140, "telegraph": 0.62, "recovery": 0.78, "damage": 1}
+  },
+  "combat": {"player_damage": 2, "hit_stop": 0.045, "projectile_speed": 360, "command_windup": 1.5},
+  "audio": {"music_db": -13, "effects_db": -7}
+}

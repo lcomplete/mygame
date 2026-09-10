@@ -1,0 +1,9 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/redesign/archer.png" id="1"]
+
+[resource]
+atlas = ExtResource("1")
+region = Rect2(25, 334, 282, 288)
+margin = Rect2(73, 52.6552, 230, 96)
+filter_clip = true

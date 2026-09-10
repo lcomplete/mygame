@@ -1,0 +1,10 @@
+build/
+build-rules/
+third_party/godot-cpp/
+game/.godot/
+game/bin/*.dylib
+game/bin/*.so
+game/bin/*.dll
+game/assets/**/*.import
+artifacts/
+.DS_Store

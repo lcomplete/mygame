@@ -1,0 +1,13 @@
+Use case: stylized-concept.
+Asset type: production character animation sprite atlas for the premium 2D side-scrolling wuxia game Sever the Decree.
+Style: exceptionally polished hand-painted 2D ink-and-cel animation. Strong expressive dark contours, attractive angular silhouettes, broad cel-shaded shadow shapes, carefully designed layered fabric and armor, restrained moonlit teal highlights and antique-gold details. Grounded stylized adult anatomy about five heads tall. Readable at 80 pixels tall. Not pixel art, not 3D, not geometric vector art.
+Canvas: a square with GENUINE alpha transparency, no painted checkerboard, no environment, no floor shadows, no text, watermarks, numbers, labels, grid lines, or borders.
+EXACT layout: 4 columns and 4 rows of equal square cells, 16 isolated full-body sprites. All face RIGHT in orthographic side view. Consistent identity, proportions, costume, body size and camera across all cells. Torso origin at horizontal cell center; standing feet baseline at 87.5% of cell height and standing head near 22%. Every limb, hat, weapon and cloth tip must remain inside its own cell with at least 5% transparent clearance. No cell overlap or cropped objects.
+Six running frames form one coherent alternating leg stride cycle.
+Row 1: idle ready A; idle ready B breathing subtly; running right forward contact; running right forward down.
+Row 2: running right passing; running left forward contact; running left forward down; running left passing.
+Row 3: jumping tucked knees; attack anticipation; attack release; attack follow-through.
+Row 4: low forward dash; alternate dash; brief hit recoil; relaxed standing.
+No floating magical effects or slash arcs; the game engine supplies them.
+
+Subject: an elderly Chinese writer and former blade merchant, slightly stooped with a thoughtful tired face, long white beard, gray hair tied into a small topknot. Weathered ivory outer robe over slate-teal layers, wide cloth sleeves, worn ochre waist sash, dark cloth slippers, a rolled manuscript carried at the waist and a simple brown cloth satchel. He holds a wooden writing brush and a small scroll, no mask, armor, sword, crown or magic. His silhouette has a distinct curved back and hanging beard. The movement poses must preserve his age: a careful short stride, small jump, hunched quick step. The attack sequence is a nonviolent brush gesture: raise brush, extend brush right, lower brush. Gentle yet resolute and visually distinct from all warriors.

@@ -1,0 +1,9 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/redesign/scribe.png" id="1"]
+
+[resource]
+atlas = ExtResource("1")
+region = Rect2(370, 341, 204, 269)
+margin = Rect2(143, 71.6552, 308, 115)
+filter_clip = true

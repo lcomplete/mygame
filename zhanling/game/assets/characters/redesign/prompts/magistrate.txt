@@ -1,0 +1,13 @@
+Use case: stylized-concept.
+Asset type: production character animation sprite atlas for the premium 2D side-scrolling wuxia game Sever the Decree.
+Style: exceptionally polished hand-painted 2D ink-and-cel animation. Strong expressive dark contours, attractive angular silhouettes, broad cel-shaded shadow shapes, carefully designed layered fabric and armor, restrained moonlit teal highlights and antique-gold details. Grounded stylized adult anatomy about five heads tall. Readable at 80 pixels tall. Not pixel art, not 3D, not geometric vector art.
+Canvas: a square with GENUINE alpha transparency, no painted checkerboard, no environment, no floor shadows, no text, watermarks, numbers, labels, grid lines, or borders.
+EXACT layout: 4 columns and 4 rows of equal square cells, 16 isolated full-body sprites. All face RIGHT in orthographic side view. Consistent identity, proportions, costume, body size and camera across all cells. Torso origin at horizontal cell center; standing feet baseline at 87.5% of cell height and standing head near 22%. Every limb, hat, weapon and cloth tip must remain inside its own cell with at least 5% transparent clearance. No cell overlap or cropped objects.
+Six running frames form one coherent alternating leg stride cycle.
+Row 1: idle ready A; idle ready B breathing subtly; running right forward contact; running right forward down.
+Row 2: running right passing; running left forward contact; running left forward down; running left passing.
+Row 3: jumping tucked knees; attack anticipation; attack release; attack follow-through.
+Row 4: low forward dash; alternate dash; brief hit recoil; relaxed standing.
+No floating magical effects or slash arcs; the game engine supplies them.
+
+Subject: the execution magistrate, a commanding adult Chinese antagonist with a broad imposing silhouette. Tall severe black ceremonial official crown with restrained horizontal wings, a cold ivory-metal face mask with narrow dark eye slits, layered deep burgundy official robes, large antique-gold shoulder armor, a gold-edged dark cuirass and heavy robe panels. One long execution saber with a broad pale steel blade, dark red handle, gold guard. Clearly a powerful court executioner, not a samurai, not a knight. His robes, mask and armor are richly designed but read clearly in silhouette. Attack frames show overhead windup, commanding forward cut and forceful follow-through. Running is a heavy stride and dash is a low forward charge.

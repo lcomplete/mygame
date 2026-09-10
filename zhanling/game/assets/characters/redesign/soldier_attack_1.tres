@@ -1,0 +1,12 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/redesign/soldier.png" id="1"]
+
+[resource]
+atlas = ExtResource("1")
+region = Rect2(633, 668, 349, 257)
+margin = Rect2(114, 83.6552, 163, 127)
+filter_clip = true
+metadata/source = ExtResource("1")
+metadata/offset = Vector2(-519, -584.3448)
+metadata/slices = [Rect2(749, 668, 29, 6), Rect2(734, 674, 50, 6), Rect2(720, 680, 71, 6), Rect2(715, 686, 84, 6), Rect2(715, 692, 88, 6), Rect2(720, 698, 261, 6), Rect2(737, 704, 244, 6), Rect2(728, 710, 253, 6), Rect2(721, 716, 259, 6), Rect2(716, 722, 262, 6), Rect2(713, 728, 261, 6), Rect2(711, 734, 256, 6), Rect2(711, 740, 245, 6), Rect2(712, 746, 223, 6), Rect2(715, 752, 191, 6), Rect2(718, 758, 160, 6), Rect2(718, 764, 159, 6), Rect2(718, 770, 77, 6), Rect2(713, 776, 77, 6), Rect2(704, 782, 83, 6), Rect2(698, 788, 92, 6), Rect2(694, 794, 101, 6), Rect2(682, 800, 126, 6), Rect2(668, 806, 153, 6), Rect2(667, 812, 162, 6), Rect2(667, 818, 168, 6), Rect2(671, 824, 170, 6), Rect2(665, 830, 180, 6), Rect2(657, 836, 191, 6), Rect2(656, 842, 196, 6), Rect2(645, 848, 207, 6), Rect2(641, 854, 210, 6), Rect2(640, 860, 212, 6), Rect2(638, 866, 215, 6), Rect2(638, 872, 216, 6), Rect2(651, 878, 205, 6), Rect2(648, 884, 211, 6), Rect2(643, 890, 220, 6), Rect2(640, 896, 231, 6), Rect2(637, 902, 250, 6), Rect2(634, 908, 255, 6), Rect2(634, 914, 255, 6), Rect2(634, 920, 248, 5)]

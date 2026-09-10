@@ -1,0 +1,12 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/redesign/archer.png" id="1"]
+
+[resource]
+atlas = ExtResource("1")
+region = Rect2(20, 1019, 332, 212)
+margin = Rect2(56, 128.6552, 180, 172)
+filter_clip = true
+metadata/source = ExtResource("1")
+metadata/offset = Vector2(36, -890.3448)
+metadata/slices = [Rect2(135, 1019, 120, 6), Rect2(135, 1025, 127, 6), Rect2(137, 1031, 125, 6), Rect2(143, 1037, 123, 6), Rect2(154, 1043, 121, 6), Rect2(72, 1049, 211, 6), Rect2(61, 1055, 231, 6), Rect2(54, 1061, 246, 6), Rect2(47, 1067, 261, 6), Rect2(41, 1073, 275, 6), Rect2(36, 1079, 280, 6), Rect2(31, 1085, 240, 6), Rect2(27, 1091, 324, 6), Rect2(26, 1097, 325, 6), Rect2(26, 1103, 316, 6), Rect2(66, 1109, 263, 6), Rect2(65, 1115, 255, 6), Rect2(65, 1121, 249, 6), Rect2(65, 1127, 242, 6), Rect2(87, 1133, 211, 6), Rect2(91, 1139, 190, 6), Rect2(77, 1145, 180, 6), Rect2(75, 1151, 182, 6), Rect2(70, 1157, 187, 6), Rect2(64, 1163, 190, 6), Rect2(57, 1169, 191, 6), Rect2(30, 1175, 207, 6), Rect2(27, 1181, 145, 6), Rect2(26, 1187, 139, 6), Rect2(26, 1193, 135, 6), Rect2(22, 1199, 138, 6), Rect2(21, 1205, 137, 6), Rect2(21, 1211, 22, 6), Rect2(21, 1217, 18, 6), Rect2(23, 1223, 14, 6), Rect2(28, 1229, 7, 2)]

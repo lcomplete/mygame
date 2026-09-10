@@ -1,0 +1,9 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/redesign/soldier.png" id="1"]
+
+[resource]
+atlas = ExtResource("1")
+region = Rect2(86, 26, 175, 281)
+margin = Rect2(165, 59.6552, 337, 103)
+filter_clip = true

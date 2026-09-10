@@ -1,0 +1,13 @@
+Use case: stylized-concept.
+Asset type: production character animation sprite atlas for the premium 2D side-scrolling wuxia game Sever the Decree.
+Style: exceptionally polished hand-painted 2D ink-and-cel animation. Strong expressive dark contours, attractive angular silhouettes, broad cel-shaded shadow shapes, carefully designed layered fabric and armor, restrained moonlit teal highlights and antique-gold details. Grounded stylized adult anatomy about five heads tall. Readable at 80 pixels tall. Not pixel art, not 3D, not geometric vector art.
+Canvas: a square with GENUINE alpha transparency, no painted checkerboard, no environment, no floor shadows, no text, watermarks, numbers, labels, grid lines, or borders.
+EXACT layout: 4 columns and 4 rows of equal square cells, 16 isolated full-body sprites. All face RIGHT in orthographic side view. Consistent identity, proportions, costume, body size and camera across all cells. Torso origin at horizontal cell center; standing feet baseline at 87.5% of cell height and standing head near 22%. Every limb, hat, weapon and cloth tip must remain inside its own cell with at least 5% transparent clearance. No cell overlap or cropped objects.
+Six running frames form one coherent alternating leg stride cycle.
+Row 1: idle ready A; idle ready B breathing subtly; running right forward contact; running right forward down.
+Row 2: running right passing; running left forward contact; running left forward down; running left passing.
+Row 3: jumping tucked knees; attack anticipation; attack release; attack follow-through.
+Row 4: low forward dash; alternate dash; brief hit recoil; relaxed standing.
+No floating magical effects or slash arcs; the game engine supplies them.
+
+Subject: a lean adult Chinese imperial archer with a broad conical woven straw hat with slate-blue edging, a dark slate-blue short cape, layered gray tunic, ochre leather forearm guards, a full quiver on the back and a handsome long recurved wood bow. Warm tawny belt, pale shin wraps. A partial face veil below intense eyes. Elegant triangular hat silhouette and unmistakable bow, no sword held. Attack anticipation must show nocking an arrow; attack release must show full bow draw with arrow aimed RIGHT, followed by just-released bowstring in follow-through. Running and dash poses carry the bow naturally.
