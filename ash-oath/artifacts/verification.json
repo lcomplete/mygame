@@ -1,0 +1,39 @@
+{
+  "date": "2026-09-11 01:59:44",
+  "interaction_check": "passed",
+  "screenshots": [
+    "/Users/lcomplete/code/mygame/ash-oath/artifacts/encampment.png",
+    "/Users/lcomplete/code/mygame/ash-oath/artifacts/akara.png",
+    "/Users/lcomplete/code/mygame/ash-oath/artifacts/blood-moor.png",
+    "/Users/lcomplete/code/mygame/ash-oath/artifacts/barbarian-ingame.png",
+    "/Users/lcomplete/code/mygame/ash-oath/artifacts/six-skills.png"
+  ],
+  "capture_metrics": [
+    {
+      "view": "encampment",
+      "fps_at_capture": 55.0,
+      "draw_calls": 870
+    },
+    {
+      "view": "akara",
+      "fps_at_capture": 58.0,
+      "draw_calls": 1042
+    },
+    {
+      "view": "blood-moor",
+      "fps_at_capture": 48.0,
+      "draw_calls": 1040
+    },
+    {
+      "view": "barbarian-ingame",
+      "fps_at_capture": 43.0,
+      "draw_calls": 289
+    },
+    {
+      "view": "six-skills",
+      "fps_at_capture": 57.0,
+      "draw_calls": 761
+    }
+  ],
+  "note": "Short single-window capture samples, not a sustained frame-time benchmark."
+}

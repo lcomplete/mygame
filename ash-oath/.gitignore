@@ -1,0 +1,4 @@
+game/.godot/
+art/*.blend1
+artifacts/*.log
+.DS_Store

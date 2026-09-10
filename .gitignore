@@ -196,3 +196,6 @@ FakesAssemblies/
 *.opt
 
 .playwright-mcp/
+
+*.DS_Store
+*.pyc
