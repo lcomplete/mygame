@@ -41,6 +41,8 @@ var camera_shake := 0.0
 var portrait_mode := false
 var portrait_angle := .30
 var monster_total := 48
+var mouse_drag_walk := false
+var mouse_repath_timer := 0.0
 
 func _ready() -> void:
 	randomize()
@@ -315,6 +317,17 @@ func _process(delta: float) -> void:
 		if player.position.z < -69 and quest==1:
 			quest=2
 			toast("你找到了邪恶洞窟。深处的黑暗仍在等待。")
+		if mouse_drag_walk and not player.dead and not portrait_mode and not combat.channeling and combat.leap_clock<=0:
+			if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+				mouse_drag_walk = false
+			else:
+				mouse_repath_timer -= delta
+				if mouse_repath_timer <= 0.0:
+					mouse_repath_timer = 0.08
+					var pt := mouse_ground()
+					if not (is_instance_valid(hover) and (hover.team=="enemy" or hover.team=="npc")) and pt.distance_to(player.position) > 0.6:
+						player.target = null
+						player.walk_to(pt)
 	update_hover()
 	hud.queue_redraw()
 	if capture_clock>0:
@@ -341,6 +354,9 @@ func update_hover() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode==KEY_F7:
+			get_tree().change_scene_to_file("res://scenes/hero_review.tscn")
+			return
 		if event.keycode==KEY_ESCAPE:
 			if not dialog.is_empty():close_dialog()
 			else: paused = not paused
@@ -370,6 +386,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		combat.cancel()
 		player.stop()
 		return
+	if event is InputEventMouseButton and event.button_index==MOUSE_BUTTON_LEFT and not event.pressed:
+		mouse_drag_walk = false
 	if not event is InputEventMouseButton or not event.pressed:return
 	if event.button_index==MOUSE_BUTTON_WHEEL_UP:
 		camera_size=clampf(camera_size-1.2,9,34)
@@ -389,6 +407,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				player.walk_to(hover.position)
 				play_sound("click",player.position)
 				return
+		mouse_drag_walk = true
+		mouse_repath_timer = 0.08
 		var origin := camera.project_ray_origin(event.position)
 		var direction := camera.project_ray_normal(event.position)
 		var point = Plane(Vector3.UP,0).intersects_ray(origin,direction)
@@ -543,7 +563,12 @@ func run_smoke_test() -> void:
 	assert(npcs.size()==5,"Five opening NPCs")
 	assert(actors.size()==56,"Player, five NPCs, two rogues and 48 monsters")
 	assert(player.skeleton!=null and player.skeleton.get_bone_count()>=100,"Anatomical skeleton imported")
-	assert(player.animation_names.size()==8,"Eight Blender clips imported")
+	assert(player.animation_names.size()==10,"Ten Blender clips imported")
+	for label in player.animation_names:
+		var clip: Animation = player.animation_player.get_animation(player.animation_names[label])
+		assert(absf(clip.length-player.clip_duration(label, clip.length))<.035,"Animation timing matches gameplay: "+label)
+	for i in range(16):
+		assert(player.skeleton.find_bone("tasset.%02d" % i)>=0,"Articulated skirt panel imported")
 	assert(combat.active_unlocked.all(func(v):return v),"All six skills unlocked at spawn")
 	assert(fury==100 and combat.cooldowns.all(func(v):return v==0),"Full initial Fury and no cooldowns")
 	var p := make_path(Vector3(1,0,6),Vector3(0,0,-23))
@@ -601,23 +626,29 @@ func run_smoke_test() -> void:
 	_unhandled_input(key)
 	assert(player.rally_buff>3.9 and fury==65,"Rallying Cry costs 35 Fury and grants 4 seconds")
 	assert(is_equal_approx(ally.rally_bonus,.10) and is_equal_approx(ally.rally_buff,2),"Nearby ally gets half rally effect")
-	await get_tree().create_timer(.7).timeout
+	await get_tree().create_timer(.75).timeout
 	key.keycode=KEY_2
 	_unhandled_input(key)
 	assert(player.war_buff>3.9 and combat.cooldowns[3]>24.9,"War Cry buff and cooldown")
 	assert(is_equal_approx(ally.war_bonus,.0375),"War Cry affects ally")
 	assert(not combat.cast(3,player.position),"Cooldown blocks repeated cast")
-	await get_tree().create_timer(.7).timeout
+	await get_tree().create_timer(.85).timeout
 	var landing: Vector3=player.position+Vector3(0,0,-7)
 	dummy.position=landing+Vector3(1,0,0)
 	var before: float=dummy.hp
 	assert(combat.cast(4,landing),"Leap accepts open ground")
-	await get_tree().create_timer(.35).timeout
+	var takeoff_position := player.position
+	await get_tree().create_timer(.10).timeout
+	assert(player.position.distance_to(takeoff_position)<.04,"Leap anticipation remains grounded")
+	await get_tree().create_timer(.25).timeout
 	assert(player.position.y>1,"Leap follows airborne arc")
 	await get_tree().create_timer(.55).timeout
 	assert(player.position.distance_to(landing)<.8,"Leap lands at requested point")
 	assert(dummy.hp<before and dummy.slow_clock>2,"Leap deals damage and slows nearby enemies")
 	assert(fury==80,"Leap generates 15 Fury")
+	assert(combat.leap_clock>0,"Landing recovery finishes before another skill")
+	assert(not combat.cast(1,player.position),"Landing recovery cannot be interrupted by whirlwind")
+	await get_tree().create_timer(.22).timeout
 	combat.cooldowns[4]=0
 	assert(not combat.cast(4,player.position),"Invalid near leap costs no cooldown")
 	assert(combat.cooldowns[4]==0,"Invalid leap does not spend cooldown")
@@ -649,7 +680,7 @@ func run_smoke_test() -> void:
 	await get_tree().create_timer(.2).timeout
 	assert(time==clock and combat.cooldowns[5]==cd,"Pause freezes world and cooldown clocks")
 	paused=false
-	await get_tree().create_timer(.9).timeout
+	await get_tree().create_timer(1.0).timeout
 	fury=100
 	assert(combat.cast(1,player.position),"Whirlwind can start again")
 	player.receive_damage(10000,dummy)

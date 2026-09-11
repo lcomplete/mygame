@@ -9,10 +9,15 @@ var channeling := false
 var whirlwind_tick := 0.0
 var channel_repath := 0.0
 var cast_clock := 0.0
-var cast_animation := "Shout"
+var cast_animation := "Rally"
 var leap_clock := 0.0
 var leap_from := Vector3.ZERO
 var leap_to := Vector3.ZERO
+var leap_duration := 1.0666667
+var leap_takeoff := .18
+var leap_land := .78
+var leap_did_land := false
+var spin_velocity := 0.0
 var weapon_damage := 32.0
 var effects: Array[Dictionary] = []
 var spinning_blades: MeshInstance3D
@@ -21,6 +26,10 @@ var active_unlocked := [true,true,true,true,true,true]
 
 func _ready() -> void:
 	data=JSON.parse_string(FileAccess.get_file_as_string("res://data/skill_reference.json")).skills
+	var profile: Dictionary = world.player.animation_profile
+	leap_duration = float(profile.get("leap_duration", leap_duration))
+	leap_takeoff = float(profile.get("leap_takeoff_seconds", leap_takeoff))
+	leap_land = float(profile.get("leap_land_seconds", leap_land))
 	spinning_blades=arc_mesh(2.45,Color("e9d4a1"),true)
 	world.add_child(spinning_blades)
 	spinning_blades.visible=false
@@ -46,6 +55,7 @@ func move_multiplier(actor: Node3D) -> float:
 
 func cancel() -> void:
 	channeling=false
+	spin_velocity=0.0
 	spinning_blades.visible=false
 
 func cast(i: int, point: Vector3) -> bool:
@@ -92,6 +102,8 @@ func cast(i: int, point: Vector3) -> bool:
 	p.stop()
 	p.target=null
 	p.attack_clock=0
+	p.lunge_clock=0
+	p.reaction_clock=0
 	if i!=1:world.fury-=cost
 	cooldowns[i]=float(s.get("cooldown_seconds",0.0))
 	match i:
@@ -99,7 +111,7 @@ func cast(i: int, point: Vector3) -> bool:
 			channeling=true
 			whirlwind_tick=float(s.tick_seconds)
 			channel_repath=0
-			p.play_animation("Whirlwind")
+			p.play_animation("Whirlwind", true)
 		2:
 			p.rally_buff=float(s.duration_seconds)
 			p.rally_bonus=float(s.movement_speed_bonus)
@@ -107,7 +119,7 @@ func cast(i: int, point: Vector3) -> bool:
 				if a.team=="ally" and not a.dead and a.position.distance_to(p.position)<8:
 					a.rally_buff=p.rally_buff*.5
 					a.rally_bonus=p.rally_bonus*.5
-			shout("Shout",Color("88c4d1"),8.0)
+			shout("Rally",Color("88c4d1"),8.0)
 		3:
 			p.war_buff=float(s.duration_seconds)
 			p.war_bonus=float(s.damage_bonus)
@@ -115,12 +127,13 @@ func cast(i: int, point: Vector3) -> bool:
 				if a.team=="ally" and not a.dead and a.position.distance_to(p.position)<8:
 					a.war_buff=p.war_buff*.5
 					a.war_bonus=p.war_bonus*.5
-			shout("Shout",Color("e09d52"),8.0)
+			shout("WarCry",Color("e09d52"),8.0)
 		4:
 			leap_from=p.position
-			leap_clock=.8
+			leap_clock=leap_duration
+			leap_did_land=false
 			p.face(leap_to)
-			p.play_animation("Leap")
+			p.play_animation("Leap", true)
 			pulse(p.position,Color("b29c73"),1.5,.4)
 			world.play_sound("leap",p.position)
 		5:
@@ -135,9 +148,9 @@ func cast(i: int, point: Vector3) -> bool:
 	return true
 
 func shout(animation: String, color: Color, radius: float) -> void:
-	cast_clock=.6 if animation=="Shout" else .8
+	cast_clock=world.player.clip_duration(animation, .8)
 	cast_animation=animation
-	world.player.play_animation(animation)
+	world.player.play_animation(animation, true)
 	pulse(world.player.position,color,radius,.65)
 	pulse(world.player.position+Vector3.UP*.15,color,radius*.75,.5)
 	world.play_sound("shout",world.player.position,.72 if animation=="Berserk" else 1.0)
@@ -169,9 +182,12 @@ func _physics_process(delta: float) -> void:
 		return
 	if leap_clock>0:
 		leap_clock=maxf(0,leap_clock-delta)
-		var t := 1.0-leap_clock/.8
-		p.position=leap_from.lerp(leap_to,t)+Vector3.UP*sin(t*PI)*3.2
-		if leap_clock<=0:
+		var elapsed := leap_duration-leap_clock
+		var t := clampf((elapsed-leap_takeoff)/(leap_land-leap_takeoff), 0.0, 1.0)
+		# Anticipation stays on the ground; the landing pose owns the recovery lock.
+		p.position=leap_from.lerp(leap_to,t)+Vector3.UP*(4.0*t*(1.0-t)*3.0)
+		if elapsed>=leap_land and not leap_did_land:
+			leap_did_land=true
 			p.position=leap_to
 			world.fury=minf(100,world.fury+float(skill(4).fury_generation))
 			area_damage(p.position,3.4,float(skill(4).damage_coefficient),true)
@@ -198,7 +214,8 @@ func _physics_process(delta: float) -> void:
 		var point: Vector3=world.mouse_ground()
 		if point.distance_to(p.position)>1:p.walk_to(point)
 		else:p.stop()
-	p.figure.rotation.y+=delta*15.5
+	spin_velocity=move_toward(spin_velocity, 15.5, delta*100.0)
+	p.figure.rotation.y=wrapf(p.figure.rotation.y+delta*spin_velocity, -PI, PI)
 	spinning_blades.visible=true
 	spinning_blades.position=p.position+Vector3.UP*.65
 	spinning_blades.rotation.y+=delta*18

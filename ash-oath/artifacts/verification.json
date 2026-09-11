@@ -1,5 +1,5 @@
 {
-  "date": "2026-09-11 01:59:44",
+  "date": "2026-09-11 07:01:47",
   "interaction_check": "passed",
   "screenshots": [
     "/Users/lcomplete/code/mygame/ash-oath/artifacts/encampment.png",
@@ -11,27 +11,27 @@
   "capture_metrics": [
     {
       "view": "encampment",
-      "fps_at_capture": 55.0,
-      "draw_calls": 870
+      "fps_at_capture": 60.0,
+      "draw_calls": 876
     },
     {
       "view": "akara",
-      "fps_at_capture": 58.0,
-      "draw_calls": 1042
+      "fps_at_capture": 60.0,
+      "draw_calls": 1046
     },
     {
       "view": "blood-moor",
-      "fps_at_capture": 48.0,
-      "draw_calls": 1040
+      "fps_at_capture": 60.0,
+      "draw_calls": 1047
     },
     {
       "view": "barbarian-ingame",
-      "fps_at_capture": 43.0,
-      "draw_calls": 289
+      "fps_at_capture": 60.0,
+      "draw_calls": 293
     },
     {
       "view": "six-skills",
-      "fps_at_capture": 57.0,
+      "fps_at_capture": 60.0,
       "draw_calls": 761
     }
   ],

@@ -1,25 +1,33 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
 config_version=5
 
 [application]
+
 config/name="灰烬誓约 · ASHEN OATH"
 run/main_scene="res://scenes/encampment.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 
 [display]
+
 window/size/viewport_width=1600
 window/size/viewport_height=1000
 window/size/window_width_override=1440
 window/size/window_height_override=900
 window/stretch/mode="canvas_items"
 
-[rendering]
-renderer/rendering_method="forward_plus"
-renderer/rendering_method.mobile="gl_compatibility"
-rendering_device/driver.macos="metal"
-textures/default_filters/use_nearest_mipmap_filter=false
-anti_aliasing/quality/msaa_3d=2
-environment/defaults/default_clear_color=Color(0.06, 0.085, 0.10, 1)
-lights_and_shadows/directional_shadow/size=4096
+[physics]
 
-[audio]
-driver/enable_input=false
+common/physics_interpolation=true
+
+[rendering]
+
+renderer/rendering_method.mobile="gl_compatibility"
+anti_aliasing/quality/msaa_3d=2
+environment/defaults/default_clear_color=Color(0.06, 0.085, 0.1, 1)

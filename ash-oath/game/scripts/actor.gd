@@ -41,6 +41,8 @@ var slow_fraction := 0.0
 var push_velocity := Vector3.ZERO
 var elite := false
 var lunge_clock := 0.0
+var reaction_clock := 0.0
+var animation_profile: Dictionary = {}
 
 func _ready() -> void:
 	home_position=position
@@ -61,8 +63,11 @@ func _ready() -> void:
 	animation_player=figure.find_child("AnimationPlayer",true,false)
 	skeleton=find_skeleton(figure)
 	if animation_player:
+		if kind == "barbarian":
+			animation_profile = JSON.parse_string(FileAccess.get_file_as_string("res://data/barbarian_animation.json"))
+			attack_total = clip_duration("Attack", attack_total)
 		for animation in animation_player.get_animation_list():
-			for label in ["Idle","Run","Attack","Whirlwind","Shout","Berserk","Leap","Death"]:
+			for label in ["Idle","Run","Attack","Whirlwind","Rally","WarCry","Berserk","Leap","Death","Hit"]:
 				if animation.ends_with(label):
 					animation_names[label]=animation
 					if label in ["Idle","Run","Whirlwind"]:animation_player.get_animation(animation).loop_mode=Animation.LOOP_LINEAR
@@ -119,6 +124,9 @@ func receive_damage(amount: float, source: Node3D) -> void:
 	if team=="player" and world.combat.leap_clock>0:return
 	hp = maxf(0.0, hp - amount)
 	hurt_clock = 0.19
+	if team == "player" and current_animation in ["Idle", "Run", "Hit"]:
+		reaction_clock = .34
+		play_animation("Hit", true)
 	world.damage_number(self, amount)
 	world.hit_effect(global_position + Vector3.UP, team == "enemy")
 	if team == "enemy" and is_instance_valid(source): target = source
@@ -131,10 +139,20 @@ func receive_damage(amount: float, source: Node3D) -> void:
 		attack_clock = 0.0
 		world.on_death(self)
 
+func _process(delta: float) -> void:
+	if world.paused or not animation_player: return
+	# Sample the skeleton at display cadence. Body motion is physics-interpolated.
+	var rate := 1.0
+	if current_animation == "Run":
+		var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+		rate = clampf(horizontal_speed / float(animation_profile.get("run_reference_speed", 3.2)), .65, 2.2)
+	animation_player.speed_scale = lerpf(animation_player.speed_scale, rate, 1.0-exp(-delta*16.0))
+	animation_player.advance(delta)
+
 func _physics_process(delta: float) -> void:
 	if world.paused: return
 	age += delta
-	if animation_player:animation_player.advance(delta)
+	reaction_clock = maxf(0.0, reaction_clock-delta)
 	for buff in ["rally_buff","war_buff","berserk_buff","unstoppable_buff","slow_clock"]:set(buff,maxf(0,float(get(buff))-delta))
 	if team=="enemy" and position.distance_squared_to(world.player.position)>1100 and position.z< -28:
 		return
@@ -150,7 +168,8 @@ func _physics_process(delta: float) -> void:
 	repath -= delta
 	if attack_clock > 0.0:
 		attack_clock = maxf(0.0, attack_clock - delta)
-		if attack_clock < attack_total * .52 and not attack_did_hit:
+		var hit_fraction: float = float(animation_profile.get("attack_hit_fraction", .48))
+		if attack_clock <= attack_total * (1.0-hit_fraction) and not attack_did_hit:
 			attack_did_hit = true
 			if is_instance_valid(target) and not target.dead and global_position.distance_to(target.global_position) < 2.65:
 				target.receive_damage(damage*world.combat.damage_multiplier(self), self)
@@ -179,7 +198,11 @@ func _physics_process(delta: float) -> void:
 	if attack_clock <= 0.0 and path_index < path.size():
 		var diff := path[path_index] - global_position
 		diff.y = 0
-		if diff.length() < .19:
+		while diff.length() < .24 and path_index < path.size() - 1:
+			path_index += 1
+			diff = path[path_index] - global_position
+			diff.y = 0
+		if diff.length() < .15 and path_index >= path.size() - 1:
 			path_index += 1
 		else:
 			var actual_speed: float = speed*world.combat.move_multiplier(self)
@@ -212,7 +235,7 @@ func _physics_process(delta: float) -> void:
 		world.talk(person)
 	if animation_player:
 		if team=="player" and world.combat.channeling:play_animation("Whirlwind")
-		elif attack_clock<=0:play_animation("Run" if moving else "Idle")
+		elif attack_clock<=0 and reaction_clock<=0:play_animation("Run" if moving else "Idle")
 		return
 	# NPC articulated meshes retain their lightweight animation.
 	var phase := age * (9.5 if team == "player" else 7.0)
@@ -242,4 +265,16 @@ func play_animation(label: String, restart: bool=false) -> void:
 	if not animation_player or not animation_names.has(label):return
 	if current_animation==label and not restart:return
 	current_animation=label
-	animation_player.play(animation_names[label],.12)
+	animation_player.speed_scale = 1.0
+	var blend := .14
+	if label in ["Attack", "Hit"]: blend = .07
+	elif label == "Death": blend = .09
+	elif label == "Whirlwind": blend = .16
+	animation_player.play(animation_names[label], blend)
+	# Repeated one-shot skills must start at anticipation, even after a quick cancel.
+	if restart: animation_player.seek(0.0, true)
+
+func clip_duration(label: String, fallback: float) -> float:
+	if animation_profile.get("clips", {}).has(label):
+		return float(animation_profile.clips[label].duration)
+	return fallback

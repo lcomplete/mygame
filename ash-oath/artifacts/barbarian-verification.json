@@ -1,0 +1,65 @@
+{
+  "asset": "barbarian.glb",
+  "checks": [
+    "Every exported mesh has normalized skin weights and valid bone indices.",
+    "All ten GLB clips have finite normalized transforms, continuous samples, and gameplay-matched durations.",
+    "Idle, Run and Whirlwind close their root and rotation loops."
+  ],
+  "animations": {
+    "Attack": {
+      "duration": 0.7167,
+      "max_sample_rotation_degrees": 22.55,
+      "loop_seam_degrees": null
+    },
+    "Berserk": {
+      "duration": 0.9333,
+      "max_sample_rotation_degrees": 7.982,
+      "loop_seam_degrees": null
+    },
+    "Death": {
+      "duration": 1.2,
+      "max_sample_rotation_degrees": 3.098,
+      "loop_seam_degrees": null
+    },
+    "Hit": {
+      "duration": 0.3333,
+      "max_sample_rotation_degrees": 2.642,
+      "loop_seam_degrees": null
+    },
+    "Idle": {
+      "duration": 2.4,
+      "max_sample_rotation_degrees": 0.1,
+      "loop_seam_degrees": 0.0431
+    },
+    "Leap": {
+      "duration": 1.0667,
+      "max_sample_rotation_degrees": 12.426,
+      "loop_seam_degrees": null
+    },
+    "Rally": {
+      "duration": 0.7,
+      "max_sample_rotation_degrees": 6.124,
+      "loop_seam_degrees": null
+    },
+    "Run": {
+      "duration": 0.6333,
+      "max_sample_rotation_degrees": 12.926,
+      "loop_seam_degrees": 0.042
+    },
+    "WarCry": {
+      "duration": 0.7833,
+      "max_sample_rotation_degrees": 7.281,
+      "loop_seam_degrees": null
+    },
+    "Whirlwind": {
+      "duration": 0.6,
+      "max_sample_rotation_degrees": 2.46,
+      "loop_seam_degrees": 0.0421
+    }
+  },
+  "joint_count": 179,
+  "vertex_count": 119673,
+  "triangle_count": 224482,
+  "capture_directory": "/Users/lcomplete/code/mygame/ash-oath/artifacts/barbarian-motion",
+  "limits": "Geometry and timing checks do not certify likeness to Diablo II: Resurrected or every possible cloth collision. Review engine captures and live transitions as well."
+}

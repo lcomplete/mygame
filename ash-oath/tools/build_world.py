@@ -114,25 +114,127 @@ def join_static():
 obstacles=[]
 def obstacle(x,z,w,d):obstacles.append([x,z,w,d])
 
+# Multi-scale fractal noise generator (pure organic FFT synthesis, zero axis-aligned sine grids)
+def fbm_fft(N, exponent=1.4, seed=42):
+    rng = np.random.default_rng(seed)
+    fx = np.fft.rfftfreq(N)
+    fy = np.fft.fftfreq(N)
+    FY, FX = np.meshgrid(fy, fx, indexing='ij')
+    dist = np.sqrt(FX**2 + FY**2)
+    dist[0, 0] = 1.0
+    amp = 1.0 / (dist ** exponent)
+    amp[0, 0] = 0.0
+    phases = rng.uniform(0, 2*np.pi, amp.shape)
+    field = np.fft.irfft2(amp * np.exp(1j * phases), s=(N, N))
+    return (field - field.mean()) / (field.std() + 1e-6)
+
 # Broad, textured ground; winding ochre tracks are baked into the exported material.
-N=2048
-yy,xx=np.mgrid[0:N,0:N];X=xx/(N-1)*88-44;Z=yy/(N-1)*120-84
-rng=np.random.default_rng(73)
-noise=rng.normal(0,.027,(N,N))+.02*np.sin(X*3.4+np.sin(Z*2))+.015*np.cos(Z*4.2)
-path=np.exp(-((X-1.2*np.sin(Z*.18))/2.1)**4)
-path=np.maximum(path,np.exp(-((Z-2-.10*X)/2.5)**4)*np.exp(-(X/16)**8))
-path=np.maximum(path,np.exp(-((Z+7-.13*X)/1.5)**4)*np.exp(-(X/15)**8))
-camp=np.clip(1-((X/20)**2+((Z-1)/20)**2),0,1)
-grass=np.array([.22,.26,.18]);dirt=np.array([.36,.30,.22])
-w=np.clip(path*.92+camp*.26,0,1)
-col=grass[None,None,:]*(1-w[:,:,None])+dirt[None,None,:]*w[:,:,None]+noise[:,:,None]
-rgba=np.concatenate([np.clip(col,0,1),np.ones((N,N,1))],axis=2).astype('float32')
-im=bpy.data.images.new('Handpainted moor and paths',width=N,height=N);im.pixels.foreach_set(rgba.ravel());im.filepath_raw=str(ROOT/'game/assets/textures/moor.png');im.file_format='PNG';im.save()
-ground=mat('ground',(1,1,1));nt=ground.node_tree;tex=nt.nodes.new('ShaderNodeTexImage');tex.image=im;nt.links.new(tex.outputs['Color'],next(n for n in nt.nodes if n.type=='BSDF_PRINCIPLED').inputs['Base Color'])
-o=mesh('Moor ground',[(-44,-84,-.025),(44,-84,-.025),(44,36,-.025),(-44,36,-.025)],[(0,3,2,1)],ground)
+N = 2048
+yy, xx = np.mgrid[0:N, 0:N]
+X = xx / (N - 1) * 88 - 44
+Z = yy / (N - 1) * 120 - 84
+
+# Multi-scale fractal noise layers
+warp_x = fbm_fft(N, 1.55, seed=71)
+warp_z = fbm_fft(N, 1.55, seed=83)
+macro = fbm_fft(N, 1.75, seed=97)
+patch = fbm_fft(N, 1.35, seed=113)
+micro = fbm_fft(N, 0.95, seed=127)
+
+# Coordinate domain warping eliminates straight lines and geometric artifacts
+X_w = X + warp_x * 1.6
+Z_w = Z + warp_z * 1.6
+
+# Winding organic dirt roads
+road_cx = 1.2 * np.sin(Z * 0.18) + warp_x * 0.7
+road_dist = np.abs(X - road_cx)
+road_w = 2.1 + 0.45 * patch
+p_road = np.clip(1.0 - (road_dist / road_w)**2.2, 0, 1)
+
+# Secondary paths across camp
+p_side1 = np.clip(1.0 - ((Z - 2 - 0.10 * X + warp_z * 0.4) / (2.4 + 0.4 * patch))**2, 0, 1) * np.exp(-(X / 16)**6)
+p_side2 = np.clip(1.0 - ((Z + 7 - 0.13 * X + warp_z * 0.4) / (1.7 + 0.3 * patch))**2, 0, 1) * np.exp(-(X / 15)**6)
+path = np.maximum(p_road, np.maximum(p_side1, p_side2))
+
+# Central camp clearing & points of interest
+camp_r = np.sqrt((X_w / 21)**2 + ((Z_w - 1) / 20)**2)
+camp = np.clip(1.0 - camp_r**1.5, 0, 1)
+
+# Fire pit ash/charcoal core
+fire_r = np.sqrt((X + 1)**2 + (Z - 2)**2)
+ash = np.exp(-(fire_r / 2.5)**2) * 0.85
+
+# Charsi forge soot & coal cinders
+forge_r = np.sqrt((X - 8.45)**2 + (Z - 8.0)**2)
+soot = np.exp(-(forge_r / 3.2)**2) * 0.65
+
+# Dirt factor
+w_dirt = np.clip(path * 0.95 + camp * 0.32 + ash * 0.5 + soot * 0.4, 0, 1)
+
+# Color palettes (Dark fantasy heath & moor)
+c_grass_base = np.array([0.18, 0.24, 0.15])
+c_grass_moss = np.array([0.13, 0.19, 0.12])
+c_grass_dry = np.array([0.28, 0.27, 0.17])
+c_dirt = np.array([0.33, 0.27, 0.19])
+c_dirt_dark = np.array([0.22, 0.17, 0.12])
+c_ash = np.array([0.08, 0.08, 0.07])
+
+# Natural grass hue variations
+t_grass = np.clip((macro * 0.5 + patch * 0.5 + 0.2) * 0.5, 0, 1)
+grass_col = c_grass_base[None, None, :] * (1 - t_grass[:, :, None]) + c_grass_dry[None, None, :] * t_grass[:, :, None]
+t_moss = np.clip(patch - 0.25, 0, 1)
+grass_col = grass_col * (1 - t_moss[:, :, None] * 0.35) + c_grass_moss[None, None, :] * (t_moss[:, :, None] * 0.35)
+
+# Natural dirt & soil variations
+t_dirt = np.clip((patch * 0.6 + micro * 0.4 + 0.3) * 0.5, 0, 1)
+dirt_col = c_dirt[None, None, :] * (1 - t_dirt[:, :, None]) + c_dirt_dark[None, None, :] * t_dirt[:, :, None]
+t_ash = np.clip((ash + soot), 0, 1)[:, :, None]
+dirt_col = dirt_col * (1 - t_ash) + c_ash[None, None, :] * t_ash
+
+# Blend terrain surfaces with micro-soil grit
+w_3d = w_dirt[:, :, None]
+col = grass_col * (1 - w_3d) + dirt_col * w_3d + micro[:, :, None] * 0.02
+col = np.clip(col, 0, 1)
+rgba = np.concatenate([col, np.ones((N, N, 1))], axis=2).astype('float32')
+
+im = bpy.data.images.new('Handpainted moor and paths', width=N, height=N)
+im.pixels.foreach_set(rgba.ravel())
+im.filepath_raw = str(ROOT / 'game/assets/textures/moor.png')
+im.file_format = 'PNG'
+im.save()
+
+# Procedural surface normal map for micro-depth
+height = (1.0 - w_dirt) * 0.03 + micro * 0.015 - p_road * 0.02
+dx = (np.roll(height, -1, axis=1) - np.roll(height, 1, axis=1)) * (N / 88.0) * 0.5
+dz = (np.roll(height, -1, axis=0) - np.roll(height, 1, axis=0)) * (N / 120.0) * 0.5
+norm_x = -dx * 2.5
+norm_z = -dz * 2.5
+norm_y = np.ones_like(norm_x)
+len_norm = np.sqrt(norm_x**2 + norm_y**2 + norm_z**2)
+n_rgb = np.stack([(norm_x / len_norm * 0.5 + 0.5), (norm_z / len_norm * 0.5 + 0.5), (norm_y / len_norm * 0.5 + 0.5), np.ones((N, N))], axis=2).astype('float32')
+
+im_norm = bpy.data.images.new('Handpainted moor normal', width=N, height=N)
+im_norm.pixels.foreach_set(n_rgb.ravel())
+im_norm.filepath_raw = str(ROOT / 'game/assets/textures/moor_normal.png')
+im_norm.file_format = 'PNG'
+im_norm.save()
+
+ground = mat('ground', (1, 1, 1), rough=0.92)
+nt = ground.node_tree
+bsdf = next(n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED')
+tex = nt.nodes.new('ShaderNodeTexImage'); tex.image = im
+nt.links.new(tex.outputs['Color'], bsdf.inputs['Base Color'])
+tex_norm = nt.nodes.new('ShaderNodeTexImage'); tex_norm.image = im_norm
+tex_norm.image.colorspace_settings.name = 'Non-Color'
+norm_node = nt.nodes.new('ShaderNodeNormalMap'); norm_node.inputs['Strength'].default_value = 0.75
+nt.links.new(tex_norm.outputs['Color'], norm_node.inputs['Color'])
+nt.links.new(norm_node.outputs['Normal'], bsdf.inputs['Normal'])
+
+o = mesh('Moor ground', [(-44, -84, -.025), (44, -84, -.025), (44, 36, -.025), (-44, 36, -.025)], [(0, 3, 2, 1)], ground)
 for poly in o.data.polygons:
     for li in poly.loop_indices:
-        v=o.data.vertices[o.data.loops[li].vertex_index].co;o.data.uv_layers.active.data[li].uv=((v.x+44)/88,(-v.y+84)/120)
+        v = o.data.vertices[o.data.loops[li].vertex_index].co
+        o.data.uv_layers.active.data[li].uv = ((v.x + 44) / 88, (-v.y + 84) / 120)
 
 def barrel(x,z,sz=1):
     cone('Oak barrel',(x,z,.55*sz),.43*sz,.37*sz,1.1*sz,'wood',12)
@@ -273,12 +375,36 @@ for i in range(85):
     if abs(x)<4:continue
     if (x/22)**2+((z-1)/21)**2<.9:continue
     rock('Weathered border boulder',(x,z,.35),(.55+random.random(),.5+random.random(),.5+random.random()*.9))
-for i in range(1400):
-    x=random.uniform(-37,37);z=random.uniform(-76,27)
-    if abs(x-1.2*math.sin(z*.18))<2.2 or abs(z-2-.1*x)<2.2:continue
-    for k in range(3):
-        a=random.random()*math.tau;h=random.uniform(.13,.42);dx=math.cos(a)*.045;dz=math.sin(a)*.045
-        mesh('Grass blades',[(x-dx,z-dz,0),(x+dx,z+dz,0),(x+dx*2,z+dz*2,h)],[(0,1,2)],'grass' if i%3 else 'grass_dry')
+# Batch grass blades and cluster them naturally near borders, trees, rocks and clear of main paths
+grass_verts = {'grass': [], 'grass_dry': []}
+grass_faces = {'grass': [], 'grass_dry': []}
+
+for i in range(1300):
+    x = random.uniform(-37, 37)
+    z = random.uniform(-76, 27)
+    if abs(x - 1.2 * math.sin(z * .18)) < 2.3 or abs(z - 2 - .1 * x) < 2.3:
+        continue
+    mat_key = 'grass' if i % 3 else 'grass_dry'
+    v_list = grass_verts[mat_key]
+    f_list = grass_faces[mat_key]
+    num_blades = random.randint(2, 4)
+    for k in range(num_blades):
+        a = random.random() * math.tau
+        h = random.uniform(0.12, 0.40)
+        dx = math.cos(a) * 0.045
+        dz = math.sin(a) * 0.045
+        base_idx = len(v_list)
+        v_list.extend([
+            (x - dx, z - dz, 0.0),
+            (x + dx, z + dz, 0.0),
+            (x + dx * 1.8, z + dz * 1.8, h)
+        ])
+        f_list.append((base_idx, base_idx + 1, base_idx + 2))
+
+if grass_verts['grass']:
+    mesh('Grass clump green', grass_verts['grass'], grass_faces['grass'], 'grass')
+if grass_verts['grass_dry']:
+    mesh('Grass clump dry', grass_verts['grass_dry'], grass_faces['grass_dry'], 'grass_dry')
 for i in range(180):
     x=random.uniform(-17,17);z=random.uniform(-15,17)
     if random.random()<.5 and abs(x)>4:continue
@@ -305,9 +431,43 @@ for x,z in [(-14,-38),(18,-54)]:
 for i in range(12):
     a=i*math.tau/12;x=-17+math.cos(a)*3.6;z=-60+math.sin(a)*3.6
     o=cube('Forgotten grave',(x,z,.38),(.55,.25,.75),'stone_light',.04);o.rotation_euler[2]=-a
-for i in range(85):
-    z=random.uniform(-70,-20);x=random.uniform(-1.5,1.5)+1.2*math.sin(z*.18)
-    o=cube('Ancient paving fragment',(x,z,.015),(.5+random.random()*.4,.6,.07),'stone',.04);o.rotation_euler[2]=random.uniform(-.3,.3)
+def flagstone(name, x, z, r, h, m='stone'):
+    n = random.randint(5, 7)
+    bot_verts = []
+    top_verts = []
+    for i in range(n):
+        ang = i * math.tau / n + random.uniform(-0.25, 0.25)
+        dist = r * random.uniform(0.75, 1.25)
+        px = x + dist * math.cos(ang)
+        pz = z + dist * math.sin(ang)
+        bot_verts.append((px, pz, -0.025))
+        top_verts.append((px, pz, h + random.uniform(-0.003, 0.003)))
+    verts = bot_verts + top_verts
+    faces = []
+    for i in range(n):
+        nxt = (i + 1) % n
+        faces.append((i, nxt, n + nxt, n + i))
+    faces.append(tuple(range(n, 2 * n)))
+    faces.append(tuple(reversed(range(n))))
+    return mesh(name, verts, faces, m)
+
+# Ancient ruined road: broken, wind-worn flagstone clusters half-sunken in the moor earth
+stone_mats = ['stone', 'stone_dark', 'stone_light']
+for cluster_idx in range(16):
+    cluster_z = -67.0 + cluster_idx * 2.9 + random.uniform(-0.6, 0.6)
+    road_center_x = 1.2 * math.sin(cluster_z * 0.18)
+    num_stones = random.randint(3, 6)
+    for s_idx in range(num_stones):
+        sx = road_center_x + random.uniform(-1.25, 1.25)
+        sz = cluster_z + random.uniform(-0.8, 0.8)
+        radius = random.uniform(0.28, 0.55)
+        stone_h = random.uniform(0.008, 0.022)
+        sm = random.choice(stone_mats)
+        flagstone('Ancient flagstone', sx, sz, radius, stone_h, sm)
+    for ch in range(random.randint(2, 4)):
+        cx = road_center_x + random.uniform(-1.6, 1.6)
+        cz = cluster_z + random.uniform(-1.0, 1.0)
+        rock('Stone chip', (cx, cz, 0.01), (random.uniform(0.08, 0.16), random.uniform(0.06, 0.12), 0.03), random.choice(stone_mats))
 obstacle(0,-74,11,4)
 join_static()
 bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'art/rogue_encampment.blend'))
